@@ -1,86 +1,110 @@
-import React, { useState, useMemo } from 'react';
-import { Calendar, Filter, Trash2, Clock, FileText, TrendingUp, BarChart3 } from 'lucide-react';
-import { SymptomEntry } from '../types';
-import { symptomCategories, getSeverityColor, getSeverityLabel } from '../utils/categories';
-import { getStoredEntries, deleteEntry } from '../utils/storage';
+import { useState, useMemo, useReducer } from "react";
+import {
+  Calendar,
+  Filter,
+  Trash2,
+  Clock,
+  FileText,
+  TrendingUp,
+  BarChart3,
+} from "lucide-react";
+import { SymptomEntry } from "../types";
+import {
+  symptomCategories,
+  getSeverityColor,
+  getSeverityLabel,
+} from "../utils/categories";
+import { getStoredEntries, deleteEntry } from "../utils/storage";
+import { initialCount, stateReducer } from "../types/reducer";
 
 interface TrendsViewProps {
   onDataChange: () => void;
 }
 
-export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
-  const [entries, setEntries] = useState<SymptomEntry[]>(() => getStoredEntries());
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'severity'>('date');
+
+export function TrendsView({ onDataChange }: TrendsViewProps) {
+  const [entries, setEntries] = useState<SymptomEntry[]>(() =>
+    getStoredEntries()
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "severity">("date");
+  const [state , dispatch] = useReducer(stateReducer , initialCount)
 
   const filteredEntries = useMemo(() => {
     let filtered = [...entries];
-    
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(entry => entry.category === selectedCategory);
+
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(
+        (entry) => entry.category === selectedCategory
+      );
     }
-    
+
     filtered.sort((a, b) => {
-      if (sortBy === 'date') {
+      if (sortBy === "date") {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
       return b.severity - a.severity;
     });
-    
+
     return filtered;
   }, [entries, selectedCategory, sortBy]);
 
   const stats = useMemo(() => {
     if (entries.length === 0) return null;
-    
-    const avgSeverity = entries.reduce((sum, entry) => sum + entry.severity, 0) / entries.length;
+
+    const avgSeverity =
+      entries.reduce((sum, entry) => sum + entry.severity, 0) / entries.length;
     const mostCommonCategory = entries.reduce((acc, entry) => {
       acc[entry.category] = (acc[entry.category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    
-    const topCategory = Object.entries(mostCommonCategory).sort(([,a], [,b]) => b - a)[0];
-    
-    const recentEntries = entries.filter(entry => {
+
+    const topCategory = Object.entries(mostCommonCategory).sort(
+      ([, a], [, b]) => b - a
+    )[0];
+
+    const recentEntries = entries.filter((entry) => {
       const entryDate = new Date(entry.date);
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       return entryDate >= weekAgo;
     });
-    
+
     return {
       total: entries.length,
       avgSeverity: avgSeverity.toFixed(1),
-      topCategory: topCategory ? symptomCategories.find(cat => cat.id === topCategory[0])?.name : 'None',
-      recentCount: recentEntries.length
+      topCategory: topCategory
+        ? symptomCategories.find((cat) => cat.id === topCategory[0])?.name
+        : "None",
+      recentCount: recentEntries.length,
     };
   }, [entries]);
 
   const handleDeleteEntry = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this entry?')) {
+    if (window.confirm("Are you sure you want to delete this entry?")) {
       try {
         deleteEntry(id);
         const updatedEntries = getStoredEntries();
         setEntries(updatedEntries);
-        onDataChange();
+        dispatch({key: "REFRESH"});
       } catch (error) {
-        console.error('Error deleting entry:', error);
+        console.error("Error deleting entry:", error);
       }
     }
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const getCategoryInfo = (categoryId: string) => {
-    return symptomCategories.find(cat => cat.id === categoryId);
+    return symptomCategories.find((cat) => cat.id === categoryId);
   };
 
   if (entries.length === 0) {
@@ -90,8 +114,12 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <BarChart3 className="w-12 h-12 text-gray-400" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No entries yet</h3>
-          <p className="text-gray-600 mb-6">Start logging your symptoms to see trends and patterns over time.</p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No entries yet
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Start logging your symptoms to see trends and patterns over time.
+          </p>
         </div>
       </div>
     );
@@ -108,43 +136,51 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
                 <BarChart3 className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total}
+                </p>
                 <p className="text-sm text-gray-600">Total Entries</p>
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.avgSeverity}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.avgSeverity}
+                </p>
                 <p className="text-sm text-gray-600">Avg Severity</p>
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Filter className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900 truncate">{stats.topCategory}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {stats.topCategory}
+                </p>
                 <p className="text-sm text-gray-600">Most Common</p>
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.recentCount}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.recentCount}
+                </p>
                 <p className="text-sm text-gray-600">This Week</p>
               </div>
             </div>
@@ -164,17 +200,21 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
                 className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Categories</option>
-                {symptomCategories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                {symptomCategories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">Sort by:</span>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'date' | 'severity')}
+                onChange={(e) =>
+                  setSortBy(e.target.value as "date" | "severity")
+                }
                 className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="date">Date</option>
@@ -182,7 +222,7 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
               </select>
             </div>
           </div>
-          
+
           <div className="text-sm text-gray-600">
             Showing {filteredEntries.length} of {entries.length} entries
           </div>
@@ -194,21 +234,34 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
         {filteredEntries.map((entry) => {
           const categoryInfo = getCategoryInfo(entry.category);
           return (
-            <div key={entry.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+            <div
+              key={entry.id}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
+            >
               <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${categoryInfo?.color || 'bg-gray-100 text-gray-800'}`}>
+                      <div
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          categoryInfo?.color || "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {categoryInfo?.name}
                       </div>
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(entry.severity)}`}>
+                      <div
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(
+                          entry.severity
+                        )}`}
+                      >
                         {getSeverityLabel(entry.severity)} ({entry.severity}/10)
                       </div>
                     </div>
-                    
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{entry.symptom}</h3>
-                    
+
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {entry.symptom}
+                    </h3>
+
                     <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
@@ -224,7 +277,7 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
                         </div>
                       )}
                     </div>
-                    
+
                     {entry.notes && (
                       <div className="flex items-start space-x-2 text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
                         <FileText className="w-4 h-4 mt-0.5 text-gray-500" />
@@ -232,7 +285,7 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
                       </div>
                     )}
                   </div>
-                  
+
                   <button
                     onClick={() => handleDeleteEntry(entry.id)}
                     className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
@@ -248,4 +301,4 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ onDataChange }) => {
       </div>
     </div>
   );
-};
+}

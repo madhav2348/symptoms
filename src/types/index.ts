@@ -3,10 +3,10 @@ export interface SymptomEntry {
   date: string;
   symptom: string;
   category: string;
-  severity: number; // 1-10 scale
+  severity: number; 
   notes?: string;
   timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
-  duration?: number; // in minutes
+  duration?: number; 
   createdAt: string;
 }
 
@@ -16,5 +16,3 @@ export interface SymptomCategory {
   color: string;
   icon: string;
 }
-
-export type ViewMode = 'log' | 'trends';
