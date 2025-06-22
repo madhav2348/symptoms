@@ -46,7 +46,6 @@ export function CategorySelector({
               }`}
             >
               <div className="text-center space-y-2">
-                {/* Icon container */}
                 <div
                   className={`inline-flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 ${
                     isSelected
@@ -56,8 +55,6 @@ export function CategorySelector({
                 >
                   <span className="text-2xl">{icon}</span>
                 </div>
-
-                {/* Category name */}
                 <div
                   className={`text-sm font-medium transition-colors duration-200 ${
                     isSelected ? "text-blue-700" : "text-gray-700"
@@ -66,8 +63,6 @@ export function CategorySelector({
                   {category.name}
                 </div>
               </div>
-
-              {/* Selection indicator */}
               {isSelected && (
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
                   <svg
@@ -83,8 +78,6 @@ export function CategorySelector({
                   </svg>
                 </div>
               )}
-
-              {/* Hover effect */}
               <div
                 className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${
                   isSelected

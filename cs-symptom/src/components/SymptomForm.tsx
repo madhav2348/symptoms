@@ -1,4 +1,4 @@
-import React , { useState, useReducer } from "react";
+import React , { useState } from "react";
 import { Calendar, Clock, FileText, Save, AlertCircle } from "lucide-react";
 import { SymptomEntry } from "../types";
 import { addEntry } from "../utils/storage";
@@ -87,9 +87,10 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
+      
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
-          {/* Date and Time */}
+       
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
@@ -134,14 +135,14 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
             </div>
           </div>
 
-          {/* Category Selector */}
+    
           <CategorySelector
             selectedCategory={formData.category}
             onChange={(category) => setFormData({ ...formData, category })}
             error={errors.category}
           />
 
-          {/* Symptom Description */}
+
           <div>
             <label className="text-sm font-medium text-gray-700 mb-3 block">
               Symptom Description
@@ -165,13 +166,13 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
             )}
           </div>
 
-          {/* Severity Slider */}
+     
           <SeveritySlider
             value={formData.severity}
             onChange={(severity) => setFormData({ ...formData, severity })}
           />
 
-          {/* Duration */}
+   
           <div>
             <label className="text-sm font-medium text-gray-700 mb-3 block">
               Duration (minutes) - Optional
@@ -188,7 +189,7 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
             />
           </div>
 
-          {/* Notes */}
+
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
               <FileText className="w-4 h-4" />
@@ -205,7 +206,7 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
             />
           </div>
 
-          {/* Submit Button */}
+       
           <button
             type="submit"
             disabled={isSubmitting}

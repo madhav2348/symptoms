@@ -1,0 +1,26 @@
+{
+  "name": "cs-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+
+    "@types/express": "^5.0.3",
+    "express": "^5.1.0",
+    "mongoose": "^8.16.0"
+  },
+  "private": true,
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@types/node": "^24.0.3"
+
+  }
+}
