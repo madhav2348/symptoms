@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigation } from "./components/Navigation";
-import { SymptomForm } from "./components/SymptomForm";
-import { TrendsView } from "./components/TrendsView";
+import { SymptomForm } from "./page/SymptomForm";
+import { TrendsView } from "./page/TrendsView";
 import { Route, Routes } from "react-router-dom";
 import { Path } from "./components/Path";
 

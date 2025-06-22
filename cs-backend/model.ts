@@ -1,7 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
 const schema = new Schema({
-  id: String,
   date: { type: String, require: true },
   symptom: { type: String, require: true },
   category: { type: String, require: true },
@@ -15,9 +14,5 @@ const schema = new Schema({
   duration: Number,
   createdAt: { type: String, require: true },
 });
-
-// schema.methods.getData = (prodId: string) => {
-//   return this.id === prodId ? this : null;
-// };
 
 export const Symptom = mongoose.model("Symptom", schema);

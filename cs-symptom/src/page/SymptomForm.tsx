@@ -1,9 +1,9 @@
-import React , { useState } from "react";
+import React, { useState } from "react";
 import { Calendar, Clock, FileText, Save, AlertCircle } from "lucide-react";
 import { SymptomEntry } from "../types";
 import { addEntry } from "../utils/storage";
-import { SeveritySlider } from "./SeveritySlider";
-import { CategorySelector } from "./CategorySelector";
+import { SeveritySlider } from "../components/SeveritySlider";
+import { CategorySelector } from "../components/CategorySelector";
 
 interface SymptomFormProps {
   onEntryAdded: () => void;
@@ -42,7 +42,7 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -50,7 +50,6 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
     setIsSubmitting(true);
 
     const entry: SymptomEntry = {
-      id: Date.now().toString(),
       date: formData.date,
       symptom: formData.symptom.trim(),
       category: formData.category,
@@ -63,6 +62,12 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
 
     try {
       addEntry(entry);
+      // const request =
+       await fetch("http://locahost:3000/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(entry),
+      });
 
       // Reset form
       setFormData({
@@ -87,10 +92,8 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
-       
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
@@ -135,13 +138,11 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
             </div>
           </div>
 
-    
           <CategorySelector
             selectedCategory={formData.category}
             onChange={(category) => setFormData({ ...formData, category })}
             error={errors.category}
           />
-
 
           <div>
             <label className="text-sm font-medium text-gray-700 mb-3 block">
@@ -166,13 +167,11 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
             )}
           </div>
 
-     
           <SeveritySlider
             value={formData.severity}
             onChange={(severity) => setFormData({ ...formData, severity })}
           />
 
-   
           <div>
             <label className="text-sm font-medium text-gray-700 mb-3 block">
               Duration (minutes) - Optional
@@ -188,7 +187,6 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
             />
           </div>
-
 
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
@@ -206,7 +204,6 @@ export function SymptomForm({ onEntryAdded }: SymptomFormProps) {
             />
           </div>
 
-       
           <button
             type="submit"
             disabled={isSubmitting}

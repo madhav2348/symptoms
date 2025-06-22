@@ -1,4 +1,4 @@
-import { useState, useMemo, useReducer } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -7,7 +7,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 
 import {
   Calendar,
@@ -25,12 +25,11 @@ import {
   getSeverityLabel,
 } from "../utils/categories";
 import { getStoredEntries, deleteEntry } from "../utils/storage";
-import { initialCount, stateReducer } from "../types/reducer";
+
 
 interface TrendsViewProps {
   onDataChange: () => void;
 }
-
 
 export function TrendsView({ onDataChange }: TrendsViewProps) {
   const [entries, setEntries] = useState<SymptomEntry[]>(() =>
@@ -38,14 +37,29 @@ export function TrendsView({ onDataChange }: TrendsViewProps) {
   );
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "severity">("date");
-  const [state , dispatch] = useReducer(stateReducer , initialCount)
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
-
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const request = await fetch("http://localhost:3000/get");
+        const data = await request.json()
+        // const local  = [...entries]
+        
+        console.log(data);
+        
+      } catch (error) {
+        console.log(error);
+        throw new Error("Something went wrong");
+      }
+    };
+    fetchData()
+  },[]);
 
   const filteredEntries = useMemo(() => {
     let filtered = [...entries];
+        console.log(` local entries ${filtered}`);
 
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
@@ -94,32 +108,30 @@ const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
     };
   }, [entries]);
 
-  const handleDeleteEntry = (id: string) => {
-  setEntryToDelete(id);
-  setShowDeleteModal(true);
-};
+  const handleDeleteEntry = (id?: string) => {
+    setEntryToDelete(id);
+    setShowDeleteModal(true);
+  };
 
-const confirmDelete = () => {
-  if (entryToDelete) {
-    try {
-      deleteEntry(entryToDelete);
-      const updatedEntries = getStoredEntries();
-      setEntries(updatedEntries);
-      dispatch({ key: "REFRESH" });
-    } catch (error) {
-      console.error("Error deleting entry:", error);
-    } finally {
-      setShowDeleteModal(false);
-      setEntryToDelete(null);
+  const confirmDelete = () => {
+    if (entryToDelete) {
+      try {
+        deleteEntry(entryToDelete);
+        const updatedEntries = getStoredEntries();
+        setEntries(updatedEntries);
+      } catch (error) {
+        console.error("Error deleting entry:", error);
+      } finally {
+        setShowDeleteModal(false);
+        setEntryToDelete(null);
+      }
     }
-  }
-};
+  };
 
-const cancelDelete = () => {
-  setShowDeleteModal(false);
-  setEntryToDelete(null);
-};
-
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setEntryToDelete(null);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -152,30 +164,33 @@ const cancelDelete = () => {
       </div>
     );
   }
-  const trendChartData = entries.map(entry => ({
-  date: new Date(entry.date).toLocaleDateString(),
-  severity: entry.severity,
-  category:entry.category
-
-}));
-
+  const trendChartData = entries.map((entry) => ({
+    date: new Date(entry.date).toLocaleDateString(),
+    severity: entry.severity,
+    category: entry.category,
+  }));
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-    Severity Trend Over Time
-  </h3>
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={trendChartData}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="date" />
-      <YAxis domain={[0, 10]} />
-      <Tooltip />
-      <Line type="monotone" dataKey="severity" stroke="#3b82f6" strokeWidth={2} />
-    </LineChart>
-  </ResponsiveContainer>
-</div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Severity Trend Over Time
+        </h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={trendChartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis domain={[0, 10]} />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="severity"
+              stroke="#3b82f6"
+              strokeWidth={2}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
 
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -237,7 +252,6 @@ const cancelDelete = () => {
         </div>
       )}
 
-    
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-4">
@@ -341,28 +355,32 @@ const cancelDelete = () => {
                     <Trash2 className="w-4 h-4" />
                   </button>
                   {showDeleteModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Delete Entry</h2>
-      <p className="text-gray-700 mb-6">Are you sure you want to delete this symptom entry? This action cannot be undone.</p>
-      <div className="flex justify-end space-x-3">
-        <button
-          onClick={cancelDelete}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={confirmDelete}
-          className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                          Delete Entry
+                        </h2>
+                        <p className="text-gray-700 mb-6">
+                          Are you sure you want to delete this symptom entry?
+                          This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            onClick={cancelDelete}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={confirmDelete}
+                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

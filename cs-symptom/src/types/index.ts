@@ -1,5 +1,5 @@
 export interface SymptomEntry {
-  id: string;
+  id?: string
   date: string;
   symptom: string;
   category: string;
